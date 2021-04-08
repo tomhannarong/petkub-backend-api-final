@@ -1,0 +1,46 @@
+{
+  "name": "petkub-backend-api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "ts-node-dev --respawn src/index.ts",
+    "build": "rimraf dist && tsc",
+    "start": "npm run build && node dist/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@sendgrid/mail": "^7.4.2",
+    "@typegoose/typegoose": "^7.6.0",
+    "apollo-server-express": "^2.22.2",
+    "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.5",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "graphql": "^15.5.0",
+    "jsonwebtoken": "^8.5.1",
+    "mongoose": "^5.12.3",
+    "passport": "^0.4.1",
+    "passport-facebook": "^3.0.0",
+    "passport-google-oauth20": "^2.0.0",
+    "reflect-metadata": "^0.1.13",
+    "type-graphql": "^1.1.1"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.2",
+    "@types/cookie-parser": "^1.4.2",
+    "@types/express": "^4.17.11",
+    "@types/graphql": "^14.5.0",
+    "@types/jsonwebtoken": "^8.5.1",
+    "@types/mongoose": "^5.10.4",
+    "@types/node": "^14.14.37",
+    "@types/passport": "^1.0.6",
+    "@types/passport-facebook": "^2.1.10",
+    "@types/passport-google-oauth20": "^2.0.7",
+    "rimraf": "^3.0.2",
+    "ts-node-dev": "^1.1.6",
+    "typescript": "^4.2.3"
+  }
+}
