@@ -20,6 +20,7 @@ type Contact {
 }
 
 type Mutation {
+  activeUser(userId: String!): ResponseMessage
   deleteUser(userId: String!): ResponseMessage
   refreshToken(refreshToken: String!): AuthData
   requestResetPassword(email: String!): ResponseMessage

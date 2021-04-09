@@ -1,7 +1,7 @@
 
-import { Resolver, Mutation, Arg, Args, Query, Ctx } from "type-graphql";
+import { Resolver, Mutation, Arg, Query, Ctx } from "type-graphql";
 import Sendgrid from '@sendgrid/mail'
-import { PersonalInformation, User, UserModel} from "../entities/User";
+import { User, UserModel} from "../entities/User";
 import { AppContext, RoleOptions } from "../types";
 import { isAuthenticated } from "../utils/authHandler";
 import { ResponseMessage } from "./AuthResolvers";
@@ -30,44 +30,44 @@ export class UserResolvers {
         }
     }
     
-    @Mutation(() => User , {nullable: true})
-    async updatePersonalInformation(
+    // @Mutation(() => User , {nullable: true})
+    // async updatePersonalInformation(
         
-        @Args() personalInformation: PersonalInformation,
-        @Arg('userId') userId: string,
-        @Ctx() { req }: AppContext
-    ): Promise<User | null> {
-        try {
-            const {fname, lname} = personalInformation
-            const admin  = await isAuthenticated(req)            
+    //     @Args() personalInformation: PersonalInformation,
+    //     @Arg('userId') userId: string,
+    //     @Ctx() { req }: AppContext
+    // ): Promise<User | null> {
+    //     try {
+    //         const {fname, lname} = personalInformation
+    //         const admin  = await isAuthenticated(req)            
 
-            // Check if admin is super admin
-            const isSuperAdmin = admin.roles.includes(RoleOptions.superAdmin)
-            const isAdmin = admin.roles.includes(RoleOptions.admin)
-            if (!isSuperAdmin || isAdmin) throw new Error('Not authorized.')
+    //         // Check if admin is super admin
+    //         const isSuperAdmin = admin.roles.includes(RoleOptions.superAdmin)
+    //         const isAdmin = admin.roles.includes(RoleOptions.admin)
+    //         if (!isSuperAdmin || isAdmin) throw new Error('Not authorized.')
 
-            //validate Personal information
-            if(!userId) throw new Error('user id is required.')
-            if(!fname) throw new Error('first name is required.')
-            if(!lname) throw new Error('last name is required.')
-            // if(!personalInformation.gender) throw new Error('gender is required.') 
-            // if(!birthday) throw new Error('birthday is invalid.') 
+    //         //validate Personal information
+    //         if(!userId) throw new Error('user id is required.')
+    //         if(!fname) throw new Error('first name is required.')
+    //         if(!lname) throw new Error('last name is required.')
+    //         // if(!personalInformation.gender) throw new Error('gender is required.') 
+    //         // if(!birthday) throw new Error('birthday is invalid.') 
 
-            const user = await UserModel.findById(userId) 
+    //         const user = await UserModel.findById(userId) 
 
-            if(!user) throw new Error('User not found.') 
+    //         if(!user) throw new Error('User not found.') 
 
-            //Update product in datebase 
-            const updatedUser = await UserModel.findByIdAndUpdate(userId,{personalInformation},{ new: true })
+    //         //Update product in datebase 
+    //         const updatedUser = await UserModel.findByIdAndUpdate(userId,{personalInformation},{ new: true })
 
-            if (!updatedUser) throw new Error('User not found.')
+    //         if (!updatedUser) throw new Error('User not found.')
 
-            return updatedUser
+    //         return updatedUser
 
-        } catch (error) {
-            throw error
-        }
-    }
+    //     } catch (error) {
+    //         throw error
+    //     }
+    // }
 
     @Mutation(() => User, { nullable: true })
     async updateRoles(
@@ -102,6 +102,47 @@ export class UserResolvers {
     }
 
     @Mutation(() => ResponseMessage, { nullable: true })
+    async activeUser(
+        @Arg('userId') userId: string,
+        @Ctx() { req }: AppContext
+    ): Promise<ResponseMessage | null> {
+        try {
+
+            // Check if user (admin) is authenticated
+            const admin = await isAuthenticated(req)
+
+            // Check if admin is super admin
+            const isAdmin = admin.roles.includes(RoleOptions.admin)
+            const isSuperAdmin = admin.roles.includes(RoleOptions.superAdmin)
+
+            if (!isSuperAdmin || isAdmin) throw new Error('Not authorized.')
+
+            // Query user (to be updated) from the database
+            const user = await UserModel.findById(userId)
+
+            if (!user) throw new Error('Sorry, cannot proceed.')
+            
+            // Check user not have deletedAt date
+            let message = ''
+            if (!user?.deletedAt) {
+                // Update deletedAt date 
+                user.deletedAt = new Date(Date.now() + 60 * 60 * 1000 * 7)
+                message = `User id: ${userId} status is inActive.`
+            }else{
+                // user have deletedAt date
+                user.deletedAt = undefined
+                message = `User id: ${userId} status is Active.`
+            }
+
+            await user.save()
+            return { message }
+
+        } catch (error) {
+            throw error
+        }
+    }
+
+    @Mutation(() => ResponseMessage, { nullable: true })
     async deleteUser(
         @Arg('userId') userId: string,
         @Ctx() { req }: AppContext
@@ -112,6 +153,7 @@ export class UserResolvers {
             const admin = await isAuthenticated(req)
 
             // Check if admin is super admin
+            // const isAdmin = admin.roles.includes(RoleOptions.admin)
             const isSuperAdmin = admin.roles.includes(RoleOptions.superAdmin)
 
             if (!isSuperAdmin) throw new Error('Not authorized.')

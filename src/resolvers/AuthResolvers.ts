@@ -277,8 +277,6 @@ export class AuthResolvers {
         }
     }
 
-    
-
     @Mutation(() => AuthData, { nullable: true })
     async refreshToken(
         @Arg('refreshToken') refreshToken: string,
