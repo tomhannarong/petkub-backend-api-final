@@ -1,12 +1,9 @@
 
 import { Resolver, Mutation, Arg, Query, Ctx } from "type-graphql";
-import Sendgrid from '@sendgrid/mail'
 import { User, UserModel} from "../entities/User";
 import { AppContext, RoleOptions } from "../types";
 import { isAuthenticated } from "../utils/authHandler";
 import { ResponseMessage } from "./AuthResolvers";
-
-Sendgrid.setApiKey(process.env.SENDGRID_API_KEY!)
 
 @Resolver()
 export class UserResolvers {

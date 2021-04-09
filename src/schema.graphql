@@ -20,7 +20,10 @@ type Contact {
 }
 
 type Mutation {
+  activePetType(petTypeId: String!): ResponseMessage
   activeUser(userId: String!): ResponseMessage
+  createPetType(name: String!): PetType
+  deletePetType(userId: String!): ResponseMessage
   deleteUser(userId: String!): ResponseMessage
   refreshToken(refreshToken: String!): AuthData
   requestResetPassword(email: String!): ResponseMessage
@@ -28,7 +31,7 @@ type Mutation {
   signin(email: String!, password: String!): AuthData
   signout: ResponseMessage
   signup(email: String!, password: String!): AuthData
-  updatePersonalInformation(birthday: Timestamp, fname: String, gender: String, lname: String, userId: String!): User
+  updatePetType(createdAt: Timestamp, deletedAt: Timestamp, id: ID!, name: String!, updatedAt: Timestamp): PetType
   updateRoles(newRoles: [String!]!, userId: String!): User
 }
 
@@ -40,9 +43,21 @@ type PersonalInformation {
   lname: String
 }
 
+"""PetType Model"""
+type PetType {
+  createdAt: Timestamp
+  deletedAt: Timestamp
+  id: ID!
+  name: String!
+  updatedAt: Timestamp
+}
+
 type Query {
   """me data"""
   me: User
+
+  """PetType List"""
+  petTypes: [PetType]!
 
   """Users List"""
   users: [User]!

@@ -4,10 +4,11 @@ import { buildSchema } from 'type-graphql'
 import { AuthResolvers } from "./resolvers/AuthResolvers";
 import { verifyAcessToken } from "./utils/tokenHandler";
 import { UserResolvers } from './resolvers/UserResolvers';
+import { PetTypeResolvers } from './resolvers/PetTypeResolvers';
 
 export default async () => {
     const schema = await buildSchema({
-        resolvers: [AuthResolvers, UserResolvers],
+        resolvers: [AuthResolvers, UserResolvers, PetTypeResolvers],
         dateScalarMode: "timestamp",
         emitSchemaFile: { path: './src/schema.graphql' },
         validate: false
