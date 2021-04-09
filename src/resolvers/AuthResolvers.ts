@@ -7,7 +7,7 @@ import { validateEmail, validatePassword } from "../utils/validate";
 import bcrypt from "bcryptjs";
 
 import { signAccessToken, verifyAcessToken, signRefreshToken, verifyRefreshToken } from "../utils/tokenHandler";
-import { AppContext, RoleOptions } from '../types'
+import { AppContext } from '../types'
 import { isAuthenticated } from '../utils/authHandler';
 
 Sendgrid.setApiKey(process.env.SENDGRID_API_KEY!)
@@ -37,26 +37,9 @@ export class AuthData {
 
 @Resolver()
 export class AuthResolvers {
-    @Query(() => [User], { nullable: 'items' }) //[User]!
-    async users(@Ctx() { req }: AppContext): Promise<User[] | null> {
-        try {
-            // Check if user is authenicated
-            const user = await isAuthenticated(req)
+    
 
-            // Check if user is authorized (Admin, SuperAdmin)
-            const isAuthorized =
-                user.roles.includes(RoleOptions.superAdmin) ||
-                user.roles.includes(RoleOptions.admin)
-
-            if (!isAuthorized) throw new Error('No Authorization.')
-
-            return UserModel.find().sort({ createdAt: 'desc' })
-        } catch (error) {
-            throw error
-        }
-    }
-
-    @Query(() => User, { nullable: true }) //[User]!
+    @Query(() => User, { nullable: true, description: "me data" }) //[User]!
     async me(@Ctx() { req }: AppContext): Promise<User | null> {
         try {
             // Check if user is authenicated
@@ -194,7 +177,7 @@ export class AuthResolvers {
             // Clear cookie in the brower
             res.clearCookie(process.env.COOKIE_NAME!)
 
-            return { message: "Goodbye" }
+            return { message: "Signout Success." }
 
         } catch (error) {
             throw error
@@ -294,63 +277,7 @@ export class AuthResolvers {
         }
     }
 
-    @Mutation(() => User, { nullable: true })
-    async updateRoles(
-        @Arg('newRoles', () => [String]) newRoles: RoleOptions[],
-        @Arg('userId') userId: string,
-        @Ctx() { req }: AppContext
-    ): Promise<User | null> {
-        try {
-
-            // Check if user (admin) is authenticated
-            const admin = await isAuthenticated(req)
-
-            // Check if admin is super admin
-            const isSuperAdmin = admin.roles.includes(RoleOptions.superAdmin)
-
-            if (!isSuperAdmin) throw new Error('Not authorized.')
-
-            // Query user (to be updated) from the database
-            const user = await UserModel.findById(userId)
-
-            if (!user) throw new Error('User not found.')
-
-            // Update roles
-            user.roles = newRoles
-
-            await user.save()
-
-            return user
-        } catch (error) {
-            throw error
-        }
-    }
-
-    @Mutation(() => ResponseMessage, { nullable: true })
-    async deleteUser(
-        @Arg('userId') userId: string,
-        @Ctx() { req }: AppContext
-    ): Promise<ResponseMessage | null> {
-        try {
-
-            // Check if user (admin) is authenticated
-            const admin = await isAuthenticated(req)
-
-            // Check if admin is super admin
-            const isSuperAdmin = admin.roles.includes(RoleOptions.superAdmin)
-
-            if (!isSuperAdmin) throw new Error('Not authorized.')
-
-            // Query user (to be updated) from the database
-            const user = await UserModel.findByIdAndDelete(userId)
-
-            if (!user) throw new Error('Sorry, cannot proceed.')
-
-            return { message: `User id: ${userId} has been deleted.` }
-        } catch (error) {
-            throw error
-        }
-    }
+    
 
     @Mutation(() => AuthData, { nullable: true })
     async refreshToken(

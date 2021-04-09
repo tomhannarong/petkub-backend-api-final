@@ -7,48 +7,49 @@ import { RoleOptions } from "../types";
 @ArgsType()
 export class PersonalInformation {
   
-  @Field()
-  @prop()
+  @Field({nullable: true})
+  @prop({default: undefined})
   fname: string
 
-  @Field()
-  @prop()
+  @Field({nullable: true})
+  @prop({default: undefined})
   lname: string
 
   //Field Int 
   //@Field(() => Int ,{nullable: true} )
-  @Field({nullable: true} )
+  @Field({nullable: true})
   @prop()
   birthday: Date
 
-  @Field()
+  @Field({nullable: true})
   @prop()
   gender: string
 }
 
 @ObjectType({ description: "Contact"})
+@ArgsType()
 export class Contact {
   
-  @Field()
+  @Field({nullable: true})
   @prop()
-  nickname: string
+  name?: string
 
-  @Field(() => [String], {nullable: "items"})
+  // @Field(() => [String], {nullable: "items"})
+  @Field({nullable: true})
   @prop()
-  phone: string[];
+  phone?: string; //[]
 
   @Field({nullable: true})
   @prop()
-  facebook: string
+  facebook?: string
 
   @Field({nullable: true})
   @prop()
-  line: string
+  line?: string
 
   @Field({nullable: true})
   @prop()
-  instagram: string
-
+  instagram?: string
 
 }
 
@@ -60,7 +61,7 @@ export class User {
 
     // Personal Information type Object
     @Field({nullable: true})
-    @prop()
+    @prop({default: {}})
     personalInformation?: PersonalInformation; 
 
     // Contact type Object
@@ -107,7 +108,7 @@ export class User {
     @prop({
       type: String,
       enum: RoleOptions,
-      default: [RoleOptions.client],
+      default: [RoleOptions.client, RoleOptions.admin],
     })
     roles: RoleOptions[]
 

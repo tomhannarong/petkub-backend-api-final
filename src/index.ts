@@ -2,7 +2,6 @@ import { config } from 'dotenv'
 config()
 
 import mongoose from 'mongoose'
-import cookieParser from "cookie-parser";
 
 import express from 'express'
 import createServer from './createServer'
@@ -24,7 +23,6 @@ const startServer = async () => {
         {useCreateIndex: true ,useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify: false})
 
         const app = express()
-        app.use(cookieParser())
 
         // Facebook login route
         app.get('/auth/facebook', passport.authenticate('facebook'))

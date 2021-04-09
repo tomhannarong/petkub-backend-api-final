@@ -15,8 +15,8 @@ type Contact {
   facebook: String
   instagram: String
   line: String
-  nickname: String!
-  phone: [String]!
+  name: String
+  phone: String
 }
 
 type Mutation {
@@ -27,20 +27,23 @@ type Mutation {
   signin(email: String!, password: String!): AuthData
   signout: ResponseMessage
   signup(email: String!, password: String!): AuthData
-  updatePersonalInformation(birthday: Timestamp, fname: String!, gender: String!, lname: String!, userId: String!): User
+  updatePersonalInformation(birthday: Timestamp, fname: String, gender: String, lname: String, userId: String!): User
   updateRoles(newRoles: [String!]!, userId: String!): User
 }
 
 """Personal Information"""
 type PersonalInformation {
   birthday: Timestamp
-  fname: String!
-  gender: String!
-  lname: String!
+  fname: String
+  gender: String
+  lname: String
 }
 
 type Query {
+  """me data"""
   me: User
+
+  """Users List"""
   users: [User]!
 }
 

@@ -2,10 +2,10 @@
 import jwt from "jsonwebtoken";
 
 export const signAccessToken = (userId: string, tokenVersion: number) =>
-    jwt.sign({ userId, tokenVersion }, process.env.ACESS_TOKEN_SECRET!, { expiresIn: '10m' })
+    jwt.sign({ userId, tokenVersion }, process.env.ACESS_TOKEN_SECRET!, { expiresIn: '15d' })
 
 export const signRefreshToken = (userId: string, tokenVersion: number) =>
-    jwt.sign({ userId, tokenVersion }, process.env.REFRESH_TOKEN_SECRET!, { expiresIn: '30m' })
+    jwt.sign({ userId, tokenVersion }, process.env.REFRESH_TOKEN_SECRET!, { expiresIn: '30d' })
 
 
 export const verifyAcessToken = (token: string) => jwt.verify(token, process.env.ACESS_TOKEN_SECRET!)
