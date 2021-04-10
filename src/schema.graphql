@@ -20,9 +20,12 @@ type Contact {
 }
 
 type Mutation {
+  activePetBreed(petBreedId: String!): ResponseMessage
   activePetType(petTypeId: String!): ResponseMessage
   activeUser(userId: String!): ResponseMessage
+  createPetBreed(name: String!, petTypeId: String!): PetBreed
   createPetType(name: String!): PetType
+  deletePetBreed(petBreedId: String!): ResponseMessage
   deletePetType(userId: String!): ResponseMessage
   deleteUser(userId: String!): ResponseMessage
   refreshToken(refreshToken: String!): AuthData
@@ -31,6 +34,7 @@ type Mutation {
   signin(email: String!, password: String!): AuthData
   signout: ResponseMessage
   signup(email: String!, password: String!): AuthData
+  updatePetBreed(name: String!, petBreedId: String!, petTypeId: String): PetBreed
   updatePetType(createdAt: Timestamp, deletedAt: Timestamp, id: ID!, name: String!, updatedAt: Timestamp): PetType
   updateRoles(newRoles: [String!]!, userId: String!): User
 }
@@ -41,6 +45,16 @@ type PersonalInformation {
   fname: String
   gender: String
   lname: String
+}
+
+"""PetBreed Model"""
+type PetBreed {
+  createdAt: Timestamp
+  deletedAt: Timestamp
+  id: ID!
+  name: String!
+  petType: PetType
+  updatedAt: Timestamp
 }
 
 """PetType Model"""
@@ -55,6 +69,9 @@ type PetType {
 type Query {
   """me data"""
   me: User
+
+  """PetBreed List"""
+  petBreeds: [PetBreed]!
 
   """PetType List"""
   petTypes: [PetType]!

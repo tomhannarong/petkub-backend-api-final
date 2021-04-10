@@ -1,15 +1,15 @@
 
-import { Resolver, Mutation, Query, Ctx, Arg, Args } from "type-graphql";
-import { PetType, PetTypeModel } from "../entities/PetType";
+import { Resolver, Mutation, Query, Ctx, Arg } from "type-graphql";
+import { PetBreed, PetBreedModel } from "../entities/PetBreed";
 import { AppContext, RoleOptions } from "../types";
 import { isAuthenticated } from "../utils/authHandler";
 import { ResponseMessage } from "./AuthResolvers";
 
 @Resolver()
-export class PetTypeResolvers {
+export class PetBreedResolvers {
 
-    @Query(() => [PetType], { nullable: 'items',description: "PetType List"})
-    async petTypes(@Ctx() { req }: AppContext): Promise<PetType[] | null> {
+    @Query(() => [PetBreed], { nullable: 'items',description: "PetBreed List"})
+    async petBreeds(@Ctx() { req }: AppContext): Promise<PetBreed[] | null> {
         try {
             // Check if user is authenicated
             const user = await isAuthenticated(req)
@@ -21,20 +21,20 @@ export class PetTypeResolvers {
 
             if (!isAuthorized) throw new Error('No Authorization.')
 
-            return PetTypeModel.find().sort({ createdAt: 'desc' }).populate({
-                path: 'PetBreed'
-                
+            return PetBreedModel.find().sort({ createdAt: 'desc' }).populate({
+                path: 'petType'
             })
         } catch (error) {
             throw error
         }
     }
 
-    @Mutation(() => PetType, { nullable: true })
-    async createPetType(
+    @Mutation(() => PetBreed, { nullable: true })
+    async createPetBreed(
         @Arg('name') name: string,
+        @Arg('petTypeId') petTypeId: string,
         @Ctx() { req }: AppContext
-    ): Promise<PetType | null> {
+    ): Promise<PetBreed | null> {
         try {
 
             // Check if user is authenicated
@@ -48,30 +48,36 @@ export class PetTypeResolvers {
             if (!isAuthorized) throw new Error('No Authorization.')
 
             if (!name) throw new Error('name is required.')
+            if (!petTypeId) throw new Error('pet type id is required.')
 
             // Check if name exist in the database
-            const petType = await PetTypeModel.findOne({ name })
-            if (petType) throw new Error('name already in use, please sign in instead.')
+            const petBreed = await PetBreedModel.findOne({ name })
+            if (petBreed) throw new Error('name already in use, please sign in instead.')
 
-            // insert pet type to the database
-            const createdPetType = await PetTypeModel.create({name})
+            // insert pet breed to the database
+            const createdPetBreed = await PetBreedModel.create({name,petType:petTypeId})
 
-            if (!createdPetType) throw new Error('Pet type can not create.')
+            if (!createdPetBreed) throw new Error('pet breed can not insert.')
 
-            return createdPetType
+            // Get Pet Breed By Id at insert and populate
+            const createdPetBreedFind = await PetBreedModel.findById(createdPetBreed.id).populate({
+                path: 'petType'
+            })
+
+            return createdPetBreedFind
         } catch (error) {
             throw error
         }
     }
 
-    @Mutation(() => PetType, { nullable: true })
-    async updatePetType(
-        @Args() petType: PetType,
+    @Mutation(() => PetBreed, { nullable: true })
+    async updatePetBreed(
+        @Arg('petBreedId') petBreedId: string,
+        @Arg('name') name: string,
+        @Arg('petTypeId', {nullable: true}) petTypeId: string,
         @Ctx() { req }: AppContext
-    ): Promise<PetType | null> {
+    ): Promise<PetBreed | null> {
         try {
-            const {id, name} = petType 
-
             // Check if user is authenicated
             const user = await isAuthenticated(req)
 
@@ -82,35 +88,33 @@ export class PetTypeResolvers {
 
             if (!isAuthorized) throw new Error('No Authorization.')
 
+            // Check validate
+            if (!petBreedId) throw new Error('pet breed id is required.')
             if (!name) throw new Error('name is required.')
 
-            // Check if name exist in the database
-            const petTypeFindOne = await PetTypeModel.findOne({ name })
-            if (petTypeFindOne) throw new Error('name already in use, please sign in instead.')
-
             // Update timestamp
-            petType.updatedAt = new Date(Date.now() + 60 * 60 * 1000 * 7)
+            const updatedAt = new Date(Date.now() + 60 * 60 * 1000 * 7)
 
-            // insert pet type to the database
-            const updatedPetType = await PetTypeModel.findByIdAndUpdate(id, {...petType}, { new: true })
+            // insert pet breed to the database
+            const updatedPetBreed = await PetBreedModel.findByIdAndUpdate(petBreedId, {name, petType:petTypeId, updatedAt}, { new: true })
+            .populate({
+                path: 'petType'
+            })
 
-            if (!updatedPetType) throw new Error('Pet type can not update.')
+            if (!updatedPetBreed) throw new Error('Pet type can not update.')
 
-            console.log("petType  : ",petType )
-
-            return updatedPetType
+            return updatedPetBreed
         } catch (error) {
             throw error
         }
     }
 
     @Mutation(() => ResponseMessage, { nullable: true })
-    async activePetType(
-        @Arg('petTypeId') petTypeId: string,
+    async activePetBreed(
+        @Arg('petBreedId') petBreedId: string,
         @Ctx() { req }: AppContext
     ): Promise<ResponseMessage | null> {
         try {
-
             // Check if user (admin) is authenticated
             const admin = await isAuthenticated(req)
 
@@ -121,24 +125,27 @@ export class PetTypeResolvers {
 
             if (!isAuthorized) throw new Error('No Authorization.')
 
-            // Query pet type (to be updated) from the database
-            const petType = await PetTypeModel.findById(petTypeId)
+            // Check validate
+            if (!petBreedId) throw new Error('pet breed id is required.')
 
-            if (!petType) throw new Error('Sorry, cannot proceed.')
+            // Query pet type (to be updated) from the database
+            const petBreed = await PetBreedModel.findById(petBreedId)
+
+            if (!petBreed) throw new Error('Sorry, cannot proceed.')
             
             // Check pet type not have deletedAt date
             let message = ''
-            if (!petType?.deletedAt) {
+            if (!petBreed?.deletedAt) {
                 // Update deletedAt date 
-                petType.deletedAt = new Date(Date.now() + 60 * 60 * 1000 * 7)
-                message = `pet type name: ${petType.name} status is inActive.`
+                petBreed.deletedAt = new Date(Date.now() + 60 * 60 * 1000 * 7)
+                message = `pet breed name: ${petBreed.name} status is inActive.`
             }else{
                 // user have deletedAt date
-                petType.deletedAt = undefined
-                message = `pet type name: ${petType.name} status is Active.`
+                petBreed.deletedAt = undefined
+                message = `pet breed name: ${petBreed.name} status is Active.`
             }
 
-            await petType.save()
+            await petBreed.save()
             return { message }
 
         } catch (error) {
@@ -147,12 +154,11 @@ export class PetTypeResolvers {
     }
 
     @Mutation(() => ResponseMessage, { nullable: true })
-    async deletePetType(
-        @Arg('userId') userId: string,
+    async deletePetBreed(
+        @Arg('petBreedId') petBreedId: string,
         @Ctx() { req }: AppContext
     ): Promise<ResponseMessage | null> {
         try {
-
             // Check if user (admin) is authenticated
             const admin = await isAuthenticated(req)
 
@@ -163,16 +169,20 @@ export class PetTypeResolvers {
 
             if (!isAuthorized) throw new Error('No Authorization.')
 
-            // Query pet type (to be updated) from the database
-            const petType = await PetTypeModel.findByIdAndDelete(userId)
+            // Check validate
+            if (!petBreedId) throw new Error('pet breed id is required.')
 
-            if (!petType) throw new Error('Sorry, cannot proceed.')
+            // Query pet breed (to be updated) from the database
+            const deletedPetBreed = await PetBreedModel.findByIdAndDelete(petBreedId)
 
-            return { message: `pet type name: ${petType.name} has been deleted.` }
+            if (!deletedPetBreed) throw new Error('Sorry, cannot proceed.')
+
+            return { message: `pet breed name: ${deletedPetBreed.name} has been deleted.` }
         } catch (error) {
             throw error
         }
     }
+
     
 
 }

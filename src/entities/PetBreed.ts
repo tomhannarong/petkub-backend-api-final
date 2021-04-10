@@ -1,16 +1,20 @@
-import { getModelForClass, prop } from "@typegoose/typegoose";
+import { getModelForClass, prop, Ref } from "@typegoose/typegoose";
 import { ObjectType, Field ,ID, ArgsType} from "type-graphql";
+import { PetType } from "./PetType";
 
-
-@ObjectType({description: 'PetType Model'})
+@ObjectType({description: 'PetBreed Model'})
 @ArgsType()
-export class PetType {
+export class PetBreed {
     @Field(()=> ID)
     id: string
 
     @Field()
     @prop({required: true, unique: true})
     name: string 
+
+    @Field(() => PetType , {nullable: true})
+    @prop({type: ID!, ref: PetType})
+    petType: Ref<PetType>;
 
     @Field({nullable: true})
     @prop({default: Date.now() + 60 * 60 * 1000 * 7})
@@ -25,6 +29,6 @@ export class PetType {
     deletedAt?: Date
 }
 
-export const PetTypeModel = getModelForClass(PetType)
+export const PetBreedModel = getModelForClass(PetBreed)
 
 
