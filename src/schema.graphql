@@ -31,9 +31,9 @@ type Mutation {
   refreshToken(refreshToken: String!): AuthData
   requestResetPassword(email: String!): ResponseMessage
   resetPassword(password: String!, token: String!): ResponseMessage
-  signin(email: String!, password: String!): AuthData
+  signin(Data: SigninInput!): AuthData
   signout: ResponseMessage
-  signup(email: String!, password: String!): AuthData
+  signup(Data: SignupInput!): AuthData
   updatePetBreed(name: String!, petBreedId: String!, petTypeId: String): PetBreed
   updatePetType(createdAt: Timestamp, deletedAt: Timestamp, id: ID!, name: String!, updatedAt: Timestamp): PetType
   updateRoles(newRoles: [String!]!, userId: String!): User
@@ -82,6 +82,19 @@ type Query {
 
 type ResponseMessage {
   message: String!
+}
+
+"""validate signin"""
+input SigninInput {
+  email: String!
+  password: String!
+}
+
+"""validate signup"""
+input SignupInput {
+  email: String!
+  password: String!
+  passwordConfirm: String!
 }
 
 """

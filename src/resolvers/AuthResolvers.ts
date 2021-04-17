@@ -3,12 +3,16 @@ import { randomBytes } from "crypto";
 import { Resolver, Query, Mutation, Arg, Ctx, ObjectType, Field, Int } from "type-graphql";
 import Sendgrid, { MailDataRequired } from '@sendgrid/mail'
 import { User, UserModel } from "../entities/User";
-import { validateEmail, validatePassword } from "../utils/validate";
 import bcrypt from "bcryptjs";
 
 import { signAccessToken, verifyAcessToken, signRefreshToken, verifyRefreshToken } from "../utils/tokenHandler";
 import { AppContext } from '../types'
 import { isAuthenticated } from '../utils/authHandler';
+import { SigninInput, SignupInput } from "../utils/validate/auth/AuthInput";
+
+import {  UserInputError } from 'apollo-server-errors';
+
+
 
 Sendgrid.setApiKey(process.env.SENDGRID_API_KEY!)
 
@@ -37,7 +41,6 @@ export class AuthData {
 
 @Resolver()
 export class AuthResolvers {
-    
 
     @Query(() => User, { nullable: true, description: "me data" }) //[User]!
     async me(@Ctx() { req }: AppContext): Promise<User | null> {
@@ -53,46 +56,24 @@ export class AuthResolvers {
     }
 
     @Mutation(() => AuthData, { nullable: true })
-    async signup(
-        // @Arg('fname') fname: string ,
-        // @Arg('lname') lname: string ,
-        // @Arg('birthday', () => Date) birthday: Date,
-        // @Args() personalInformation: PersonalInformation,
-        // @Args() contact: Contact,
-        // @Arg('username') username: string ,
-        @Arg('email') email: string,
-        @Arg('password') password: string,
-
-        // @Ctx() {res} : AppContext
-    ): Promise<AuthData | null> {
+    async signup(@Arg("Data")
+    {
+        email,
+        password,
+    }: SignupInput): Promise<AuthData | null> {
         try {
-            //validate Username
-            // if(!username) throw new Error('Username is required.')
-            if (!email) throw new Error('Email is required.')
-            if (!password) throw new Error('Password is invalid.')
 
-            // Check if email exist in the databaseserModel.findOne({email})
-            const user = await UserModel.findOne({ email })
-            if (user) throw new Error('Email already in use, please sign in instead.')
+            // throw new ApolloError('My error message', '12312', { statusCode:123123 });
 
-            // const isUsernameValid = validateUsername(username)
-            // if(!isUsernameValid) throw new Error('Username must be between 3 - 60 characters.') 
-
-            //validate email
-            const isEmailValid = validateEmail(email)
-            if (!isEmailValid) throw new Error('Email is invalid.')
-
-            //validate password
-            const isPasswordValid = validatePassword(password)
-            if (!isPasswordValid) throw new Error('Password must be between 6 - 50 characters.')
-
+            // throw new UserInputError('Invalid argument value', {
+            //     argumentName: 'email'
+            //   });
             const hashedPassword = await bcrypt.hash(password, 10)
 
-            const newUser = await UserModel.create({
-                email, password: hashedPassword
-            })
-
-            await newUser.save()
+            const newUser = await (await UserModel.create<Pick<User, 'email' | 'password'>>({
+                email: email.trim().toLocaleLowerCase(),
+                password: hashedPassword,
+            })).save();
 
             // sign Access Token
             const accessToken = signAccessToken(newUser.id, newUser.tokenVersion)
@@ -114,28 +95,19 @@ export class AuthResolvers {
     }
 
     @Mutation(() => AuthData, { nullable: true })
-    async signin(
-        @Arg('email') email: string,
-        @Arg('password') password: string,
-        // @Ctx() {res} : AppContext
-    ): Promise<AuthData | null> {
+    async signin(@Arg("Data")
+    {
+        email,
+        password,
+    }: SigninInput): Promise<AuthData | null> {
         try {
-            //validate Username
-            if (!email) throw new Error('Email is required.')
-            if (!password) throw new Error('Password is invalid.')
+            // //validate Username
+            // if (!email) throw new Error('Email is required.')
+            // if (!password) throw new Error('Password is invalid.')
 
             // Check if email exist in the database
             const user = await UserModel.findOne({ email })
             if (!user) throw new Error('Email not found.')
-
-
-            //validate email
-            const isEmailValid = validateEmail(email)
-            if (!isEmailValid) throw new Error('Email is invalid.')
-
-            //validate password
-            const isPasswordValid = validatePassword(password)
-            if (!isPasswordValid) throw new Error('Password must be between 6 - 50 characters.')
 
             // Check if the password is valid
             const isPasswordvalid = await bcrypt.compare(password, user.password)

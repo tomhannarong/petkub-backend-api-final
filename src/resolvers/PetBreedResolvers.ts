@@ -8,7 +8,7 @@ import { ResponseMessage } from "./AuthResolvers";
 @Resolver()
 export class PetBreedResolvers {
 
-    @Query(() => [PetBreed], { nullable: 'items',description: "PetBreed List"})
+    @Query(() => [PetBreed], { nullable: 'items', description: "PetBreed List" })
     async petBreeds(@Ctx() { req }: AppContext): Promise<PetBreed[] | null> {
         try {
             // Check if user is authenicated
@@ -55,7 +55,7 @@ export class PetBreedResolvers {
             if (petBreed) throw new Error('name already in use, please sign in instead.')
 
             // insert pet breed to the database
-            const createdPetBreed = await PetBreedModel.create({name,petType:petTypeId})
+            const createdPetBreed = await PetBreedModel.create({ name, petType: petTypeId })
 
             if (!createdPetBreed) throw new Error('pet breed can not insert.')
 
@@ -74,7 +74,7 @@ export class PetBreedResolvers {
     async updatePetBreed(
         @Arg('petBreedId') petBreedId: string,
         @Arg('name') name: string,
-        @Arg('petTypeId', {nullable: true}) petTypeId: string,
+        @Arg('petTypeId', { nullable: true }) petTypeId: string,
         @Ctx() { req }: AppContext
     ): Promise<PetBreed | null> {
         try {
@@ -96,10 +96,10 @@ export class PetBreedResolvers {
             const updatedAt = new Date(Date.now() + 60 * 60 * 1000 * 7)
 
             // insert pet breed to the database
-            const updatedPetBreed = await PetBreedModel.findByIdAndUpdate(petBreedId, {name, petType:petTypeId, updatedAt}, { new: true })
-            .populate({
-                path: 'petType'
-            })
+            const updatedPetBreed = await PetBreedModel.findByIdAndUpdate(petBreedId, { name, petType: petTypeId, updatedAt }, { new: true })
+                .populate({
+                    path: 'petType'
+                })
 
             if (!updatedPetBreed) throw new Error('Pet type can not update.')
 
@@ -132,14 +132,14 @@ export class PetBreedResolvers {
             const petBreed = await PetBreedModel.findById(petBreedId)
 
             if (!petBreed) throw new Error('Sorry, cannot proceed.')
-            
+
             // Check pet type not have deletedAt date
             let message = ''
             if (!petBreed?.deletedAt) {
                 // Update deletedAt date 
                 petBreed.deletedAt = new Date(Date.now() + 60 * 60 * 1000 * 7)
                 message = `pet breed name: ${petBreed.name} status is inActive.`
-            }else{
+            } else {
                 // user have deletedAt date
                 petBreed.deletedAt = undefined
                 message = `pet breed name: ${petBreed.name} status is Active.`
@@ -183,6 +183,6 @@ export class PetBreedResolvers {
         }
     }
 
-    
+
 
 }

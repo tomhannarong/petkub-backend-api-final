@@ -12,7 +12,7 @@ export default async () => {
         resolvers: [AuthResolvers, UserResolvers, PetTypeResolvers, PetBreedResolvers],
         dateScalarMode: "timestamp",
         emitSchemaFile: { path: './src/schema.graphql' },
-        validate: false
+        validate: true
     })
     return new ApolloServer({
         schema,
@@ -44,5 +44,12 @@ export default async () => {
             }
             return { req, res }
         },
+        formatError: (err) => {
+            return (
+                {
+                    message: err.message,
+                    extensions: err.extensions
+                })
+        }
     })
 }

@@ -21,7 +21,6 @@ const startServer = async () => {
         // Connect to the database
         await mongoose.connect(`mongodb+srv://${DB_USER}:${DB_PASSWORD}@${DB_ENDPOINT}/${DB_NAME}?retryWrites=true&w=majority`, 
         {useCreateIndex: true ,useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify: false})
-
         const app = express()
 
         // Facebook login route
