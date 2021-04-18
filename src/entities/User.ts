@@ -16,7 +16,7 @@ export class PersonalInformation {
   lname: string
 
   //Field Int 
-  //@Field(() => Int ,{nullable: true} )
+  // @Field(() => Int ,{nullable: true} )
   @Field({nullable: true})
   @prop()
   birthday: Date

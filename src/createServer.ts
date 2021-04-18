@@ -45,6 +45,7 @@ export default async () => {
             return { req, res }
         },
         formatError: (err) => {
+            console.log(err.extensions)
             return (
                 {
                     message: err.message,

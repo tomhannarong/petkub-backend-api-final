@@ -5,7 +5,15 @@ import { Match } from "./matchPassword";
 
 @InputType({ description: "validate signup"})
 export class SignupInput {
-  
+
+  @Field()
+  @IsNotEmpty()
+  fname: string;
+
+  @Field()
+  @IsNotEmpty()
+  lname : string;
+
   @Field()
   @IsEmail()
   @IsEmailAlreadyExist({ message: "Email already in use, please sign in instead." })
@@ -25,7 +33,7 @@ export class SignupInput {
 @InputType({ description: "validate signin"})
 export class SigninInput {
   @Field()
-  @IsEmail()
+  @IsNotEmpty()
   email: string;
 
   @Field()

@@ -93,6 +93,8 @@ input SigninInput {
 """validate signup"""
 input SignupInput {
   email: String!
+  fname: String!
+  lname: String!
   password: String!
   passwordConfirm: String!
 }

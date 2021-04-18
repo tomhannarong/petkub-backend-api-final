@@ -10,9 +10,6 @@ import { AppContext } from '../types'
 import { isAuthenticated } from '../utils/authHandler';
 import { SigninInput, SignupInput } from "../utils/validate/auth/AuthInput";
 
-import {  UserInputError } from 'apollo-server-errors';
-
-
 
 Sendgrid.setApiKey(process.env.SENDGRID_API_KEY!)
 
@@ -46,10 +43,8 @@ export class AuthResolvers {
     async me(@Ctx() { req }: AppContext): Promise<User | null> {
         try {
             // Check if user is authenicated
-            const user = await isAuthenticated(req)
+            return await isAuthenticated(req)
 
-            // if(!user) throw new Error('Not authenticated.') 
-            return user
         } catch (error) {
             throw error
         }
@@ -58,21 +53,21 @@ export class AuthResolvers {
     @Mutation(() => AuthData, { nullable: true })
     async signup(@Arg("Data")
     {
+        fname,
+        lname,
         email,
         password,
     }: SignupInput): Promise<AuthData | null> {
         try {
-
-            // throw new ApolloError('My error message', '12312', { statusCode:123123 });
-
-            // throw new UserInputError('Invalid argument value', {
-            //     argumentName: 'email'
-            //   });
             const hashedPassword = await bcrypt.hash(password, 10)
 
-            const newUser = await (await UserModel.create<Pick<User, 'email' | 'password'>>({
+            const newUser = await (await UserModel.create({
                 email: email.trim().toLocaleLowerCase(),
                 password: hashedPassword,
+                personalInformation: {
+                    fname: fname,
+                    lname: lname
+                }
             })).save();
 
             // sign Access Token
@@ -101,17 +96,13 @@ export class AuthResolvers {
         password,
     }: SigninInput): Promise<AuthData | null> {
         try {
-            // //validate Username
-            // if (!email) throw new Error('Email is required.')
-            // if (!password) throw new Error('Password is invalid.')
-
             // Check if email exist in the database
             const user = await UserModel.findOne({ email })
-            if (!user) throw new Error('Email not found.')
+            if (!user) throw new Error('No such user found.')
 
             // Check if the password is valid
             const isPasswordvalid = await bcrypt.compare(password, user.password)
-            if (!isPasswordvalid) throw new Error('Email or password is invalid.')
+            if (!isPasswordvalid) throw new Error('Username or password is invalid.')
 
             // sign Access Token
             const accessToken = signAccessToken(user.id, user.tokenVersion)
