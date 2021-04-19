@@ -78,9 +78,9 @@ export class User {
     @prop()
     profileImg? : string
 
-    @Field()
-    @prop()
-    username: string
+    // @Field()
+    // @prop()
+    // username: string
 
     @Field()
     @prop({required: true, trim: true, unique: true, lowercase: true})

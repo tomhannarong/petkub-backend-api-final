@@ -1,5 +1,5 @@
 
-import { Resolver, Mutation, Arg, Query, Ctx } from "type-graphql";
+import { Resolver, Mutation, Arg, Query, Ctx, ForbiddenError } from "type-graphql";
 import { User, UserModel} from "../entities/User";
 import { AppContext, RoleOptions } from "../types";
 import { isAuthenticated } from "../utils/authHandler";
@@ -19,7 +19,8 @@ export class UserResolvers {
                 user.roles.includes(RoleOptions.superAdmin) ||
                 user.roles.includes(RoleOptions.admin)
 
-            if (!isAuthorized) throw new Error('No Authorization.')
+            if (!isAuthorized) throw new ForbiddenError()
+
 
             return UserModel.find().sort({ createdAt: 'desc' })
         } catch (error) {
@@ -73,7 +74,6 @@ export class UserResolvers {
         @Ctx() { req }: AppContext
     ): Promise<User | null> {
         try {
-
             // Check if user (admin) is authenticated
             const admin = await isAuthenticated(req)
 
@@ -104,7 +104,6 @@ export class UserResolvers {
         @Ctx() { req }: AppContext
     ): Promise<ResponseMessage | null> {
         try {
-
             // Check if user (admin) is authenticated
             const admin = await isAuthenticated(req)
 
@@ -116,7 +115,6 @@ export class UserResolvers {
 
             // Query user (to be updated) from the database
             const user = await UserModel.findById(userId)
-
             if (!user) throw new Error('Sorry, cannot proceed.')
             
             // Check user not have deletedAt date

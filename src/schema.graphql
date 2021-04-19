@@ -20,22 +20,22 @@ type Contact {
 }
 
 type Mutation {
-  activePetBreed(petBreedId: String!): ResponseMessage
-  activePetType(petTypeId: String!): ResponseMessage
+  activePetBreed(id: String!): ResponseMessage
+  activePetType(id: String!): ResponseMessage
   activeUser(userId: String!): ResponseMessage
   createPetBreed(name: String!, petTypeId: String!): PetBreed
   createPetType(name: String!): PetType
-  deletePetBreed(petBreedId: String!): ResponseMessage
-  deletePetType(userId: String!): ResponseMessage
+  deletePetBreed(id: String!): ResponseMessage
+  deletePetType(id: String!): ResponseMessage
   deleteUser(userId: String!): ResponseMessage
   refreshToken(refreshToken: String!): AuthData
   requestResetPassword(email: String!): ResponseMessage
   resetPassword(password: String!, token: String!): ResponseMessage
-  signin(Data: SigninInput!): AuthData
+  signin(email: String!, password: String!): AuthData
   signout: ResponseMessage
-  signup(Data: SignupInput!): AuthData
-  updatePetBreed(name: String!, petBreedId: String!, petTypeId: String): PetBreed
-  updatePetType(createdAt: Timestamp, deletedAt: Timestamp, id: ID!, name: String!, updatedAt: Timestamp): PetType
+  signup(email: String!, fname: String!, lname: String!, password: String!, passwordConfirm: String!): AuthData
+  updatePetBreed(id: String!, name: String!, petTypeId: String!): PetBreed
+  updatePetType(id: String!, name: String!): PetType
   updateRoles(newRoles: [String!]!, userId: String!): User
 }
 
@@ -84,21 +84,6 @@ type ResponseMessage {
   message: String!
 }
 
-"""validate signin"""
-input SigninInput {
-  email: String!
-  password: String!
-}
-
-"""validate signup"""
-input SignupInput {
-  email: String!
-  fname: String!
-  lname: String!
-  password: String!
-  passwordConfirm: String!
-}
-
 """
 The javascript `Date` as integer. Type represents date and time as number of milliseconds from start of UNIX epoch.
 """
@@ -115,5 +100,4 @@ type User {
   profileImg: String
   roles: [String!]!
   updatedAt: Timestamp!
-  username: String!
 }

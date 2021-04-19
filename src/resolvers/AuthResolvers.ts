@@ -1,6 +1,6 @@
 
 import { randomBytes } from "crypto";
-import { Resolver, Query, Mutation, Arg, Ctx, ObjectType, Field, Int } from "type-graphql";
+import { Resolver, Query, Mutation, Arg, Ctx, ObjectType, Field, Int, Args } from "type-graphql";
 import Sendgrid, { MailDataRequired } from '@sendgrid/mail'
 import { User, UserModel } from "../entities/User";
 import bcrypt from "bcryptjs";
@@ -51,7 +51,7 @@ export class AuthResolvers {
     }
 
     @Mutation(() => AuthData, { nullable: true })
-    async signup(@Arg("Data")
+    async signup(@Args()
     {
         fname,
         lname,
@@ -90,7 +90,7 @@ export class AuthResolvers {
     }
 
     @Mutation(() => AuthData, { nullable: true })
-    async signin(@Arg("Data")
+    async signin(@Args()
     {
         email,
         password,
@@ -125,20 +125,14 @@ export class AuthResolvers {
 
     @Mutation(() => ResponseMessage, { nullable: true })
     async signout(
-        @Ctx() { req, res }: AppContext
+        @Ctx() { req }: AppContext
     ): Promise<ResponseMessage | null> {
         try {
-
-            // Check if email exist in the database
-            const user = await UserModel.findById(req.userId)
-            if (!user) return null
+            const user = await isAuthenticated(req)
 
             // Bump up token version
             user.tokenVersion = user.tokenVersion + 1
             await user.save()
-
-            // Clear cookie in the brower
-            res.clearCookie(process.env.COOKIE_NAME!)
 
             return { message: "Signout Success." }
 
@@ -290,7 +284,4 @@ export class AuthResolvers {
             throw error
         }
     }
-
-
-
 }

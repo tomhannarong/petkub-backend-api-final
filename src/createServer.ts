@@ -45,11 +45,14 @@ export default async () => {
             return { req, res }
         },
         formatError: (err) => {
-            console.log(err.extensions)
+            if( err.message == 'Argument Validation Error')  { 
+                err.extensions!.code = "ARGUMENT_VALIDATION_ERROR"
+            }
             return (
                 {
                     message: err.message,
-                    extensions: err.extensions
+                    extensions: err.extensions,
+                    path: err.path
                 })
         }
     })

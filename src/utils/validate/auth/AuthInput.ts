@@ -1,9 +1,10 @@
 import {  IsEmail, Matches, IsNotEmpty } from "class-validator";
-import { Field, InputType } from "type-graphql";
+import { ArgsType, Field, InputType } from "type-graphql";
 import { IsEmailAlreadyExist } from "./isEmailAlreadyExist";
 import { Match } from "./matchPassword";
 
 @InputType({ description: "validate signup"})
+@ArgsType()
 export class SignupInput {
 
   @Field()
@@ -31,6 +32,7 @@ export class SignupInput {
 }
 
 @InputType({ description: "validate signin"})
+@ArgsType()
 export class SigninInput {
   @Field()
   @IsNotEmpty()

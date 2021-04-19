@@ -1,7 +1,7 @@
 import { Response } from 'express'
 
 import { AppRequest } from '../types'
-import { UserModel, User } from '../entities/User'
+import { UserModel } from '../entities/User'
 import { signAccessToken } from '../utils/tokenHandler'
 
 const { FRONTEND_URI } = process.env
@@ -18,9 +18,7 @@ export const FBAuthenticate = async (req: AppRequest, res: Response) => {
 
     if (!user) {
       // New user --> create new user on our database
-      const newUser = await UserModel.create<
-        Pick<User, 'username' | 'email' | 'facebookId' | 'password'>
-      >({
+      const newUser = await UserModel.create({
         username: displayName,
         email: (emails && emails[0].value) || provider,
         facebookId: id,
@@ -32,7 +30,7 @@ export const FBAuthenticate = async (req: AppRequest, res: Response) => {
       // Create token
       token = signAccessToken(newUser.id, newUser.tokenVersion)
 
-      console.log("Send token to the frontend" ,token)
+      console.log("Send token to the frontend", token)
       // Send token to the frontend
       // sendToken(res, token)
 
@@ -66,9 +64,7 @@ export const GoogleAuthenticate = async (req: AppRequest, res: Response) => {
 
     if (!user) {
       // New user --> create new user on our database
-      const newUser = await UserModel.create<
-        Pick<User, 'username' | 'email' | 'googleId' | 'password'>
-      >({
+      const newUser = await UserModel.create({
         username: displayName,
         email: (emails && emails[0].value) || provider,
         googleId: id,
@@ -80,7 +76,7 @@ export const GoogleAuthenticate = async (req: AppRequest, res: Response) => {
       // Create token
       token = signAccessToken(newUser.id, newUser.tokenVersion)
 
-      console.log("Send token to the frontend" ,token)
+      console.log("Send token to the frontend", token)
 
       // Send token to the frontend
       // sendToken(res, token)
@@ -92,7 +88,7 @@ export const GoogleAuthenticate = async (req: AppRequest, res: Response) => {
       // Create token
       token = signAccessToken(user.id, user.tokenVersion)
 
-      console.log("Send token to the frontend" ,token)
+      console.log("Send token to the frontend", token)
       // Send token to the frontend
       // sendToken(res, token)
 

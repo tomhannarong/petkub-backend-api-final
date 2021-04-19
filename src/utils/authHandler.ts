@@ -8,7 +8,7 @@ export const isAuthenticated = async (req: AppRequest) =>{
 
     // Query user from database
     const user = await UserModel.findById(req.userId)
-
+    
     if(!user) throw new AuthenticationError('User not authenticated.')
 
     // Check if token version is valid

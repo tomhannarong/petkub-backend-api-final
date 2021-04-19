@@ -1,14 +1,15 @@
 
-import { Resolver, Mutation, Query, Ctx, Arg, Args } from "type-graphql";
+import { Resolver, Mutation, Query, Ctx, Arg, Args, ForbiddenError } from "type-graphql";
 import { PetType, PetTypeModel } from "../entities/PetType";
 import { AppContext, RoleOptions } from "../types";
 import { isAuthenticated } from "../utils/authHandler";
+import { CreatePetTypeInput, UpdatePetTypeInput } from "../utils/validate/masterData/MasterDataInput";
 import { ResponseMessage } from "./AuthResolvers";
 
 @Resolver()
 export class PetTypeResolvers {
 
-    @Query(() => [PetType], { nullable: 'items',description: "PetType List"})
+    @Query(() => [PetType], { nullable: 'items', description: "PetType List" })
     async petTypes(@Ctx() { req }: AppContext): Promise<PetType[] | null> {
         try {
             // Check if user is authenicated
@@ -19,11 +20,11 @@ export class PetTypeResolvers {
                 user.roles.includes(RoleOptions.superAdmin) ||
                 user.roles.includes(RoleOptions.admin)
 
-            if (!isAuthorized) throw new Error('No Authorization.')
+            if (!isAuthorized) throw new ForbiddenError()
 
             return PetTypeModel.find().sort({ createdAt: 'desc' }).populate({
                 path: 'PetBreed'
-                
+
             })
         } catch (error) {
             throw error
@@ -32,11 +33,12 @@ export class PetTypeResolvers {
 
     @Mutation(() => PetType, { nullable: true })
     async createPetType(
-        @Arg('name') name: string,
+        @Args() petTypeInput: CreatePetTypeInput,
         @Ctx() { req }: AppContext
     ): Promise<PetType | null> {
         try {
 
+            const { name } = petTypeInput
             // Check if user is authenicated
             const user = await isAuthenticated(req)
 
@@ -45,16 +47,12 @@ export class PetTypeResolvers {
                 user.roles.includes(RoleOptions.superAdmin) ||
                 user.roles.includes(RoleOptions.admin)
 
-            if (!isAuthorized) throw new Error('No Authorization.')
+            if (!isAuthorized) throw new ForbiddenError()
 
             if (!name) throw new Error('name is required.')
 
-            // Check if name exist in the database
-            const petType = await PetTypeModel.findOne({ name })
-            if (petType) throw new Error('name already in use, please sign in instead.')
-
             // insert pet type to the database
-            const createdPetType = await PetTypeModel.create({name})
+            const createdPetType = await PetTypeModel.create({ name })
 
             if (!createdPetType) throw new Error('Pet type can not create.')
 
@@ -66,11 +64,13 @@ export class PetTypeResolvers {
 
     @Mutation(() => PetType, { nullable: true })
     async updatePetType(
-        @Args() petType: PetType,
+        @Args() {
+            id,
+            name
+        }: UpdatePetTypeInput,
         @Ctx() { req }: AppContext
     ): Promise<PetType | null> {
         try {
-            const {id, name} = petType 
 
             // Check if user is authenicated
             const user = await isAuthenticated(req)
@@ -80,23 +80,15 @@ export class PetTypeResolvers {
                 user.roles.includes(RoleOptions.superAdmin) ||
                 user.roles.includes(RoleOptions.admin)
 
-            if (!isAuthorized) throw new Error('No Authorization.')
-
-            if (!name) throw new Error('name is required.')
-
-            // Check if name exist in the database
-            const petTypeFindOne = await PetTypeModel.findOne({ name })
-            if (petTypeFindOne) throw new Error('name already in use, please sign in instead.')
-
-            // Update timestamp
-            petType.updatedAt = new Date(Date.now() + 60 * 60 * 1000 * 7)
+            if (!isAuthorized) throw new ForbiddenError()
 
             // insert pet type to the database
-            const updatedPetType = await PetTypeModel.findByIdAndUpdate(id, {...petType}, { new: true })
+            const updatedPetType = await PetTypeModel.findByIdAndUpdate(id, {
+                name,
+                updatedAt: new Date(Date.now() + 60 * 60 * 1000 * 7)
+            }, { new: true })
 
             if (!updatedPetType) throw new Error('Pet type can not update.')
-
-            console.log("petType  : ",petType )
 
             return updatedPetType
         } catch (error) {
@@ -106,7 +98,7 @@ export class PetTypeResolvers {
 
     @Mutation(() => ResponseMessage, { nullable: true })
     async activePetType(
-        @Arg('petTypeId') petTypeId: string,
+        @Arg('id') id: string,
         @Ctx() { req }: AppContext
     ): Promise<ResponseMessage | null> {
         try {
@@ -119,20 +111,20 @@ export class PetTypeResolvers {
                 admin.roles.includes(RoleOptions.superAdmin) ||
                 admin.roles.includes(RoleOptions.admin)
 
-            if (!isAuthorized) throw new Error('No Authorization.')
+            if (!isAuthorized) throw new ForbiddenError()
 
             // Query pet type (to be updated) from the database
-            const petType = await PetTypeModel.findById(petTypeId)
+            const petType = await PetTypeModel.findById(id)
 
             if (!petType) throw new Error('Sorry, cannot proceed.')
-            
+
             // Check pet type not have deletedAt date
             let message = ''
             if (!petType?.deletedAt) {
                 // Update deletedAt date 
                 petType.deletedAt = new Date(Date.now() + 60 * 60 * 1000 * 7)
                 message = `pet type name: ${petType.name} status is inActive.`
-            }else{
+            } else {
                 // user have deletedAt date
                 petType.deletedAt = undefined
                 message = `pet type name: ${petType.name} status is Active.`
@@ -148,7 +140,7 @@ export class PetTypeResolvers {
 
     @Mutation(() => ResponseMessage, { nullable: true })
     async deletePetType(
-        @Arg('userId') userId: string,
+        @Arg('id') id: string,
         @Ctx() { req }: AppContext
     ): Promise<ResponseMessage | null> {
         try {
@@ -161,10 +153,10 @@ export class PetTypeResolvers {
                 admin.roles.includes(RoleOptions.superAdmin) ||
                 admin.roles.includes(RoleOptions.admin)
 
-            if (!isAuthorized) throw new Error('No Authorization.')
+            if (!isAuthorized) throw new ForbiddenError()
 
             // Query pet type (to be updated) from the database
-            const petType = await PetTypeModel.findByIdAndDelete(userId)
+            const petType = await PetTypeModel.findByIdAndDelete(id)
 
             if (!petType) throw new Error('Sorry, cannot proceed.')
 
@@ -173,6 +165,6 @@ export class PetTypeResolvers {
             throw error
         }
     }
-    
+
 
 }

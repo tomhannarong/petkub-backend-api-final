@@ -1,8 +1,9 @@
 
-import { Resolver, Mutation, Query, Ctx, Arg } from "type-graphql";
+import { Resolver, Mutation, Query, Ctx, Arg, ForbiddenError, Args } from "type-graphql";
 import { PetBreed, PetBreedModel } from "../entities/PetBreed";
 import { AppContext, RoleOptions } from "../types";
 import { isAuthenticated } from "../utils/authHandler";
+import { CreatePetBreedInput, UpdatePetBreedInput } from "../utils/validate//masterData/MasterDataInput";
 import { ResponseMessage } from "./AuthResolvers";
 
 @Resolver()
@@ -19,7 +20,7 @@ export class PetBreedResolvers {
                 user.roles.includes(RoleOptions.superAdmin) ||
                 user.roles.includes(RoleOptions.admin)
 
-            if (!isAuthorized) throw new Error('No Authorization.')
+            if (!isAuthorized) throw new ForbiddenError()
 
             return PetBreedModel.find().sort({ createdAt: 'desc' }).populate({
                 path: 'petType'
@@ -31,12 +32,13 @@ export class PetBreedResolvers {
 
     @Mutation(() => PetBreed, { nullable: true })
     async createPetBreed(
-        @Arg('name') name: string,
-        @Arg('petTypeId') petTypeId: string,
+        @Args() {
+            name,
+            petTypeId
+        }: CreatePetBreedInput,
         @Ctx() { req }: AppContext
     ): Promise<PetBreed | null> {
         try {
-
             // Check if user is authenicated
             const user = await isAuthenticated(req)
 
@@ -45,14 +47,7 @@ export class PetBreedResolvers {
                 user.roles.includes(RoleOptions.superAdmin) ||
                 user.roles.includes(RoleOptions.admin)
 
-            if (!isAuthorized) throw new Error('No Authorization.')
-
-            if (!name) throw new Error('name is required.')
-            if (!petTypeId) throw new Error('pet type id is required.')
-
-            // Check if name exist in the database
-            const petBreed = await PetBreedModel.findOne({ name })
-            if (petBreed) throw new Error('name already in use, please sign in instead.')
+            if (!isAuthorized) throw new ForbiddenError()
 
             // insert pet breed to the database
             const createdPetBreed = await PetBreedModel.create({ name, petType: petTypeId })
@@ -72,12 +67,17 @@ export class PetBreedResolvers {
 
     @Mutation(() => PetBreed, { nullable: true })
     async updatePetBreed(
-        @Arg('petBreedId') petBreedId: string,
-        @Arg('name') name: string,
-        @Arg('petTypeId', { nullable: true }) petTypeId: string,
+        @Args() {
+            id,
+            name,
+            petTypeId
+        }: UpdatePetBreedInput,
         @Ctx() { req }: AppContext
     ): Promise<PetBreed | null> {
         try {
+            // const petBreed = await PetBreedModel.find({ name ,_id: { $ne: petBreedId } })
+            // if(petBreed) 
+
             // Check if user is authenicated
             const user = await isAuthenticated(req)
 
@@ -86,17 +86,15 @@ export class PetBreedResolvers {
                 user.roles.includes(RoleOptions.superAdmin) ||
                 user.roles.includes(RoleOptions.admin)
 
-            if (!isAuthorized) throw new Error('No Authorization.')
-
-            // Check validate
-            if (!petBreedId) throw new Error('pet breed id is required.')
-            if (!name) throw new Error('name is required.')
-
-            // Update timestamp
-            const updatedAt = new Date(Date.now() + 60 * 60 * 1000 * 7)
+            if (!isAuthorized) throw new ForbiddenError()
 
             // insert pet breed to the database
-            const updatedPetBreed = await PetBreedModel.findByIdAndUpdate(petBreedId, { name, petType: petTypeId, updatedAt }, { new: true })
+            const updatedPetBreed = await PetBreedModel.findByIdAndUpdate(id,
+                {
+                    name,
+                    petType: petTypeId,
+                    updatedAt: new Date(Date.now() + 60 * 60 * 1000 * 7)
+                }, { new: true })
                 .populate({
                     path: 'petType'
                 })
@@ -111,10 +109,11 @@ export class PetBreedResolvers {
 
     @Mutation(() => ResponseMessage, { nullable: true })
     async activePetBreed(
-        @Arg('petBreedId') petBreedId: string,
+        @Arg('id') id: string,
         @Ctx() { req }: AppContext
     ): Promise<ResponseMessage | null> {
         try {
+
             // Check if user (admin) is authenticated
             const admin = await isAuthenticated(req)
 
@@ -123,13 +122,10 @@ export class PetBreedResolvers {
                 admin.roles.includes(RoleOptions.superAdmin) ||
                 admin.roles.includes(RoleOptions.admin)
 
-            if (!isAuthorized) throw new Error('No Authorization.')
-
-            // Check validate
-            if (!petBreedId) throw new Error('pet breed id is required.')
+            if (!isAuthorized) throw new ForbiddenError()
 
             // Query pet type (to be updated) from the database
-            const petBreed = await PetBreedModel.findById(petBreedId)
+            const petBreed = await PetBreedModel.findById(id)
 
             if (!petBreed) throw new Error('Sorry, cannot proceed.')
 
@@ -155,7 +151,7 @@ export class PetBreedResolvers {
 
     @Mutation(() => ResponseMessage, { nullable: true })
     async deletePetBreed(
-        @Arg('petBreedId') petBreedId: string,
+        @Arg('id') id: string,
         @Ctx() { req }: AppContext
     ): Promise<ResponseMessage | null> {
         try {
@@ -167,13 +163,10 @@ export class PetBreedResolvers {
                 admin.roles.includes(RoleOptions.superAdmin) ||
                 admin.roles.includes(RoleOptions.admin)
 
-            if (!isAuthorized) throw new Error('No Authorization.')
-
-            // Check validate
-            if (!petBreedId) throw new Error('pet breed id is required.')
+            if (!isAuthorized) throw new ForbiddenError()
 
             // Query pet breed (to be updated) from the database
-            const deletedPetBreed = await PetBreedModel.findByIdAndDelete(petBreedId)
+            const deletedPetBreed = await PetBreedModel.findByIdAndDelete(id)
 
             if (!deletedPetBreed) throw new Error('Sorry, cannot proceed.')
 
