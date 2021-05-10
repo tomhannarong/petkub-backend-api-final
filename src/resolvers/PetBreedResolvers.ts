@@ -1,4 +1,5 @@
 
+import { mongoose } from "@typegoose/typegoose";
 import { Resolver, Mutation, Query, Ctx, Arg, ForbiddenError, Args } from "type-graphql";
 import { PetBreed, PetBreedModel } from "../entities/PetBreed";
 import { AppContext, RoleOptions } from "../types";
@@ -92,7 +93,7 @@ export class PetBreedResolvers {
             const updatedPetBreed = await PetBreedModel.findByIdAndUpdate(id,
                 {
                     name,
-                    petType: petTypeId,
+                    petType: mongoose.Types.ObjectId(petTypeId),
                     updatedAt: new Date(Date.now() + 60 * 60 * 1000 * 7)
                 }, { new: true })
                 .populate({

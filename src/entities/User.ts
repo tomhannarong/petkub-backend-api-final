@@ -19,11 +19,11 @@ export class PersonalInformation {
   // @Field(() => Int ,{nullable: true} )
   @Field({nullable: true})
   @prop()
-  birthday: Date
+  birthday?: Date
 
   @Field({nullable: true})
   @prop()
-  gender: string
+  gender?: string
 }
 
 @ObjectType({ description: "Contact"})

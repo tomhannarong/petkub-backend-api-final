@@ -61,7 +61,9 @@ export class AuthResolvers {
         try {
             const hashedPassword = await bcrypt.hash(password, 10)
 
-            const newUser = await (await UserModel.create({
+            const newUser = await (await UserModel.create<
+                Pick<User, 'email' | 'password' | 'personalInformation'>
+              >({
                 email: email.trim().toLocaleLowerCase(),
                 password: hashedPassword,
                 personalInformation: {
