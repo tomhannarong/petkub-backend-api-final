@@ -165,6 +165,4 @@ export class PetTypeResolvers {
             throw error
         }
     }
-
-
 }

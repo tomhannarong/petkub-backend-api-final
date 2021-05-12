@@ -76,6 +76,9 @@ type Query {
   """PetType List"""
   petTypes: [PetType]!
 
+  """User by id"""
+  user(id: String!): User
+
   """Users List"""
   users: [User]!
 }

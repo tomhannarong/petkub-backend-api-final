@@ -34,8 +34,6 @@ export class AuthData {
     expiresIn?: number
 }
 
-
-
 @Resolver()
 export class AuthResolvers {
 
